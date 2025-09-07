@@ -1,39 +1,88 @@
-from deepeval.metrics import TaskCompletionMetric
-from deepeval.tracing import observe
+from deepeval.synthesizer import Synthesizer
+from deepeval.dataset import EvaluationDataset
+from deepeval.test_case import LLMTestCase, LLMTestCaseParams
+from deepeval.metrics import (
+    ContextualRelevancyMetric,
+    ContextualRecallMetric,
+    ContextualPrecisionMetric,
+)
+from deepeval.metrics import GEval
 from deepeval import evaluate
-from deepeval.dataset import Golden
 
-task_completion = TaskCompletionMetric(
-    threshold=0.7,
-    model="gpt-4o",
-    include_reason=True,
-    verbose_mode=True
+
+from agent import RAGAgent
+import os
+
+synthesizer = Synthesizer()
+
+# generate synthetic dataset
+goldens = synthesizer.generate_goldens_from_docs(
+    document_paths=["datasets/Theranos/theranos.txt"]
 )
 
-# The trip_planner_agent simulates the actual LLM agent
-@observe(metrics=[task_completion])
-def trip_planner_agent(input):
-    destination = "Paris"
-    days = 2
+# now create an evaluation dataset using the goldens
+dataset = EvaluationDataset(goldens=goldens)
 
-    @observe()
-    def restaurant_finder(city):
-        return ["Le Jules Verne", "Angelina Paris", "Septime"]
+dataset_alias = "RAG QA Agent Dataset"
+dataset.push(alias=dataset_alias)
 
-    @observe()
-    def itinerary_generator(destination, days):
-        return ["Eiffel Tower", "Louvre Museum", "Montmartre"][:days]
+del dataset
 
-    itinerary = itinerary_generator(destination, days)
-    restaurants = restaurant_finder(destination)
-
-    output = []
-    for i in range(days):
-        output.append(f"{itinerary[i]} and eat at {restaurants[i]}")
-
-    return ". ".join(output) + "."
+dataset = EvaluationDataset()
+dataset.pull(dataset_alias)
 
 
-# We are simulating function calling here
-evaluate(observed_callback=trip_planner_agent, goldens=[Golden(input="Paris, 2")])
+base_path = "./datasets/Theranos"
+documents = ["theranos.txt"]
+document_paths = [os.path.join(base_path, document_name) for document_name in documents]
 
+agent = RAGAgent(document_paths=document_paths)
+
+
+test_cases = []
+for golden in dataset.goldens:
+    retrieved_docs = agent.retrieve(golden.input)
+    response = agent.generate(query=golden.input, retrieved_docs=retrieved_docs)
+    test_case = LLMTestCase(
+        input=golden.input,
+        actual_output=str(response),
+        retrieval_context=retrieved_docs,
+        expected_output=golden.expected_output
+    )
+
+    test_cases.append(test_case)
+
+
+print (f"Created {len(test_cases)} test cases.")
+
+
+# Define metrics
+# Retriever metrics
+# Contextual Relevancy — The retrieved context must be relevant to the query
+# Contextual Recall — The retrieved context should be enough to answer the query
+# Contextual Precision — The retrieved context should be precise and must not include unnecessary details
+
+relevancy = ContextualRelevancyMetric()
+recall = ContextualRecallMetric()
+precision = ContextualPrecisionMetric()
+
+# Generator metrics
+# Answer Correctness — To evaluate only the answer from our json.
+# Citation Accuracy — To evaluate the citations mentioned in the json.
+
+answer_correctness = GEval(
+    name="Answer Correctness",
+    criteria="Evaluate if the actual output's 'answer' property is correct and complete from the input and retrieved context. If the answer is not correct or complete, reduce score.",
+    evaluation_params=[LLMTestCaseParams.INPUT, LLMTestCaseParams.ACTUAL_OUTPUT, LLMTestCaseParams.RETRIEVAL_CONTEXT]
+)
+
+citation_accuracy = GEval(
+    name="Citation Accuracy",
+    criteria="Check if the citations in the actual output are correct and relevant based on input and retrieved context. If they're not correct, reduce score.",
+    evaluation_params=[LLMTestCaseParams.INPUT, LLMTestCaseParams.ACTUAL_OUTPUT, LLMTestCaseParams.RETRIEVAL_CONTEXT]
+)
+
+
+
+metrics = [relevancy, recall, precision, answer_correctness, citation_accuracy]
+evaluate(test_cases=test_cases, metrics=metrics)
