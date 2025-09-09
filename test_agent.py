@@ -13,32 +13,38 @@ from deepeval import evaluate
 from agent import RAGAgent
 import os
 
-synthesizer = Synthesizer()
 
-# generate synthetic dataset
-goldens = synthesizer.generate_goldens_from_docs(
-    document_paths=["datasets/Theranos/theranos.txt"]
-)
-
-# now create an evaluation dataset using the goldens
-dataset = EvaluationDataset(goldens=goldens)
-
+CREATE_SYNTHETIC_DATASET = False
 dataset_alias = "RAG QA Agent Dataset"
-dataset.push(alias=dataset_alias)
 
-del dataset
+if CREATE_SYNTHETIC_DATASET:
+    synthesizer = Synthesizer()
 
-dataset = EvaluationDataset()
-dataset.pull(dataset_alias)
+    # generate synthetic dataset
+    goldens = synthesizer.generate_goldens_from_docs(
+        document_paths=["datasets/Theranos/theranos.txt"]
+    )
+
+    # now create an evaluation dataset using the goldens
+    dataset = EvaluationDataset(goldens=goldens)
+
+    dataset.push(alias=dataset_alias)
+
+    del dataset
+else:
+    print (f"Loading existing dataset: {dataset_alias}")
+    dataset = EvaluationDataset()
+    dataset.pull(dataset_alias)
 
 
+# Initialise docs and Agent
 base_path = "./datasets/Theranos"
 documents = ["theranos.txt"]
 document_paths = [os.path.join(base_path, document_name) for document_name in documents]
-
 agent = RAGAgent(document_paths=document_paths)
 
 
+# Using LLMTestCase create test cases using goldens
 test_cases = []
 for golden in dataset.goldens:
     retrieved_docs = agent.retrieve(golden.input)
@@ -85,4 +91,7 @@ citation_accuracy = GEval(
 
 
 metrics = [relevancy, recall, precision, answer_correctness, citation_accuracy]
+
+# And finally we use the evaluate() function to evaluate all the test cases and log the metrics summary into Confident AI cloud
+
 evaluate(test_cases=test_cases, metrics=metrics)
