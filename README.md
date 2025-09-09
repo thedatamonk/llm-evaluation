@@ -91,13 +91,16 @@ What comprises a LLM system?
 - Refer to notion page of LLM evaluation
 
 # What I know so far?
-1. How to setup DeepEval?
-2. How to use DeepEval with an Ollama run model as well as using the default OpenAI models?
-3. Define custom metrics
-4. Evaluate a golden dataset on a set of predefined metrics and custom metrics.
-5. End-to-end LLM evaluation where we treat the LLM app as a black-box and then test it.
+1. ~~~How to setup DeepEval?~~
+2. ~~How to use DeepEval with an Ollama run model as well as using the default OpenAI models?~~
+3. ~~Define custom metrics~~
+4. ~~Evaluate a golden dataset on a set of predefined metrics and custom metrics.~~
+5. ~~End-to-end LLM evaluation where we treat the LLM app as a black-box and then test it.~~
 6. How to perform single and multi-turn evals?
 
 # What I need to understand next?
-1. How to evaluate each component of an LLM app?
-2. How to evaluate agents? I think this will be covered in the first point itself.
+1. ~~How to evaluate each component of an LLM app?~~
+2. ~~How to evaluate agents? I think this will be covered in the first point itself.~~
+3. Fix the trace issue that I am getting while running `deepeval test run test_agent_in_prod.py`
+    - For some reason, I am not able to find the bug in this, but we'll revisit this later.
+
