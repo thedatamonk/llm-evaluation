@@ -2,3 +2,4 @@ deepeval
 langchain-community
 tiktoken
 faiss-cpu
+bitsandbytes
