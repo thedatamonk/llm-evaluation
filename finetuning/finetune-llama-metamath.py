@@ -9,6 +9,8 @@ Specific task is to finetune a Llama model on MetaMathQA dataset using Vertex AI
 3. **Deploy the tuned model**: Once the fine-tuning job is complete, deploy the model to an endpoint on Vertex AI and evaluate its performance.
 4. **Compare (Optional)**: Compare our model's output with the official pre-trained MetaMath model from Hugging Face.
 5. **Run Official Evaluation (Advanced)**: Download our tuned model and run the official evaluation scripts from the MetaMath repository.
+
+Reference: https://github.com/GoogleCloudPlatform/generative-ai/blob/main/open-models/fine-tuning/get_started_with_oss_tuning_on_vertexai.ipynb
 """
 import os
 import time
