@@ -70,3 +70,10 @@ This folder contains code to serve an API for performing inference using a deplo
 
 **Note:**  
 Make sure your Google Cloud credentials and endpoint details are correct before running the server
+
+## TODO:
+- **Online inference**
+1. Create a YAML file to build, push and deploy this API to Cloud Run. Basically fully automate the deployment process.
+2. Optimise inferencing using vllm
+3. Performance monitoring of the deployed API.
+- **Batch inference**
