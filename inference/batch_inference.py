@@ -2,6 +2,9 @@
 Batch inference: This is for asynchronous requests where immediate respones aren't required.
 For Batch inference, we don't need to deploy the model to an endpoint. Instrad we can directly send the request to the model resource.
 We send te request as a BatchPredictionJob resource directly to the Model resource.
+
+Reference - https://cloud.google.com/vertex-ai/generative-ai/docs/multimodal/batch-prediction-from-cloud-storage#create-batch-job-python_genai_sdk
+
 """
 
 from google import genai
