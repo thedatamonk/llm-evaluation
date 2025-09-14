@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from google.cloud import aiplatform
-from inference.models import PredictionInstance, PredictionRequest
+from models import PredictionInstance, PredictionRequest
 
 # Replace with your actual project details
 PROJECT_ID = "710805310428"
